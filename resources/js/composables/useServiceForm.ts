@@ -1,6 +1,7 @@
 import type { Service } from '@/types';
 import { reactive, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { router } from '@inertiajs/vue3'; 
 
 export function useServiceForm(emit?: any) {
     type CreateService = Omit<Service, 'id' | 'created_at' | 'updated_at'>;
@@ -170,11 +171,11 @@ export function useServiceForm(emit?: any) {
                 emit('close');
             }
 
-            // router.visit(window.location.pathname, {
-            //     preserveScroll: true,
-            //     preserveState: false,
-            //     replace: true,
-            // });
+            router.visit(window.location.pathname, {
+                preserveScroll: true,
+                preserveState: false,
+                replace: true,
+            });
         } catch (error) {
             console.error('Error submitting the form:', error);
             validationErrors.value = {

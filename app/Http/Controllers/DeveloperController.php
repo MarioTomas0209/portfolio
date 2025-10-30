@@ -34,8 +34,11 @@ class DeveloperController extends Controller
 
         // Ordenar y paginar
         $perPage = $request->input('perPage', 10);
-        $page = $request->input('page', 1);
-        $developers = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+        // $page = $request->input('page', 1);
+        $developers = $query->latest()
+            ->paginate($perPage)
+            ->onEachSide(1)
+            ->withQueryString();
 
         return Inertia::render('developers/Index', [
             'developers' => $developers->items(), // Solo los items
@@ -157,7 +160,7 @@ class DeveloperController extends Controller
                     }
                     $validatedData['cv'] = null;
                 }
-                
+
                 // Handle uploaded CV - reemplazar si hay un nuevo archivo
                 if ($request->hasFile('cv')) {
                     // Eliminar CV anterior si existe
@@ -167,7 +170,7 @@ class DeveloperController extends Controller
                             Storage::disk('public')->delete($cvPath);
                         }
                     }
-                    
+
                     $cvPath = $request->file('cv')->store('developers/cvs', 'public');
                     $validatedData['cv'] = Storage::url($cvPath);
                 }

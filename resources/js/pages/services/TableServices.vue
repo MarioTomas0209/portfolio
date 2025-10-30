@@ -8,7 +8,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Service } from '@/types';
 import { Edit, Trash2 } from 'lucide-vue-next';
+
+// Recibir los datos de los servicios enviados desde el compoenente padre
+const props = defineProps<{
+    services: Array<Service>;
+}>();
 </script>
 
 <template>
@@ -19,47 +25,55 @@ import { Edit, Trash2 } from 'lucide-vue-next';
                 <TableHead>Status</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Icon</TableHead>
                 <TableHead>Features</TableHead>
+                <TableHead>Icon</TableHead>
                 <TableHead>Color</TableHead>
                 <TableHead class="text-center">Actions</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
-            <TableRow>
-                <TableCell class="font-bold">1</TableCell>
+            <TableRow v-for="service in services" :key="service.id">
+                <TableCell class="font-bold">{{ service.id }}</TableCell>
                 <TableCell>
                     <span>
                         <span
-                            class="mr-1 inline-flex h-2 w-2 rounded-full bg-green-500"
+                            class="mr-1 inline-flex h-2 w-2 rounded-full"
+                            :class="{
+                                'bg-green-500': service.is_active,
+                                'bg-red-500': !service.is_active,
+                            }"
                         >
                         </span>
-                        Active
+                        {{ service.is_active ? 'Active' : 'Inactive' }}
                     </span>
                 </TableCell>
-                <TableCell>Desarrollo Web</TableCell>
+                <TableCell>
+                    <p class="text-xs">{{ service.title }}</p>
+                </TableCell>
                 <TableCell>
                     <p
-                        class="text-sm"
-                        title="Creamos sitios web modernos y responsivos que se adaptan a cualquier dispositivo."
+                        class="max-w-xs truncate text-sm"
+                        :title="service.description"
                     >
-                        Creamos sitios web modernos y...
+                        {{ service.description }}
                     </p>
                 </TableCell>
                 <TableCell>
-                    <i class="fa-solid fa-circle-check text-xl"></i>
+                    <span
+                        class="cursor-help text-sm text-gray-600"
+                        :title="service.features.join(', ')"
+                    >
+                        {{ service.features.length }} feature{{
+                            service.features.length !== 1 ? 's' : ''
+                        }}
+                    </span>
                 </TableCell>
                 <TableCell>
-                    <ul class="list-disc space-y-1 pl-4">
-                        <li class="text-sm">list1</li>
-                        <li class="text-sm">list2</li>
-                        <li class="text-sm">list3</li>
-                        <li class="text-sm">list4</li>
-                    </ul>
+                    <i :class="`${service.icon} text-xl`"></i>
                 </TableCell>
                 <TableCell>
                     <span
-                        class="block h-6 w-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
+                        :class="`block h-6 w-6 rounded-full bg-gradient-to-r ${service.color}`"
                     ></span>
                 </TableCell>
                 <TableCell class="text-center">

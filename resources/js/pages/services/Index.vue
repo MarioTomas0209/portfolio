@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import ServiceModal from './ServiceModal.vue';
-import TableServices from '@/pages/services/TableServices.vue';
 import FiltersBar from '@/components/table/FiltersBar.vue';
+import TablePagination from '@/components/table/TablePagination.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import TableServices from '@/pages/services/TableServices.vue';
+import ServiceModal from './ServiceModal.vue';
 
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, Service } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { watchDebounced } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -45,6 +47,43 @@ const status = ref<'all' | 'active' | 'inactive'>(
     props.filters?.status || 'all',
 );
 
+// Funcion para aplicar filtros
+function applyFilters(page: number = 1) {
+    router.get(
+        '/service',
+        {
+            search: search.value,
+            perPage: perPage.value,
+            status: status.value,
+            page: page,
+        },
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        },
+    );
+}
+
+// Funcion para cambiar de pagina
+const changePage = (page: number) => {
+    applyFilters(page);
+};
+
+// Watch con debounce para search (espera 500ms después de que el usuario deje de escribir)
+watchDebounced(
+    search,
+    () => {
+        applyFilters(1);
+    },
+    { debounce: 500 },
+);
+
+// Watch inmediato para perPage y status
+watch([perPage, status], () => {
+    applyFilters(1)
+});
+
 </script>
 
 <template>
@@ -60,14 +99,18 @@ const status = ref<'all' | 'active' | 'inactive'>(
                 name="Services"
             >
                 <template #actions>
-                    <ServiceModal 
-
-                    />
+                    <ServiceModal />
                 </template>
             </FiltersBar>
 
             <!-- Tabla -->
-             <TableServices />
+            <TableServices :services="props.services" />
+
+            <!-- Pagination -->
+            <TablePagination
+                :pagination="pagination"
+                @change-page="changePage"
+            />
         </div>
     </AppLayout>
 </template>

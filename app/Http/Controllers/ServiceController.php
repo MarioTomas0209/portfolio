@@ -28,8 +28,11 @@ class ServiceController extends Controller
 
         // Ordenar y paginar
         $perPage = $request->input('perPage', 10);
-        $page = $request->input('page', 1);
-        $services = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+        // $page = $request->input('page', 1);
+        $services = $query->latest()
+            ->paginate($perPage)
+            ->onEachSide(1)
+            ->withQueryString();
 
         return Inertia::render('services/Index', [
             'services' => $services->items(),

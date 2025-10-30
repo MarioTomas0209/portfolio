@@ -13,7 +13,7 @@ import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import Switch from '@/components/ui/switch/Switch.vue';
 import Textarea from '@/components/ui/textarea/Textarea.vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus, X } from 'lucide-vue-next';
 import { Spinner } from "@/components/ui/spinner"
 
 const {
@@ -170,7 +170,7 @@ const {
                         <div
                             v-for="(feature, item) in formData.features"
                             :key="item"
-                            class="flex items-center justify-between rounded border bg-gray-50 p-2"
+                            class="flex items-center justify-between rounded border bg-gray-50 dark:bg-gray-900 p-2"
                         >
                             <span>{{ feature }}</span>
                             <Button
@@ -178,7 +178,7 @@ const {
                                 @Click="removeFeature(item)"
                                 variant="red"
                             >
-                                X
+                                <X />
                             </Button>
                         </div>
                     </div>

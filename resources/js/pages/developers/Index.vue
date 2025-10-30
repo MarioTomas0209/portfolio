@@ -25,68 +25,17 @@
             />
 
             <!-- Pagination -->
-            <div
-                v-if="pagination && pagination.last_page > 1"
-                class="mt-6 flex items-center justify-between"
-            >
-                <!-- Pagination Controls -->
-                <Pagination
-                    :total="pagination.total"
-                    :itemsPerPage="pagination.per_page"
-                    :page="pagination.current_page"
-                    :sibling-count="1"
-                    show-edges
-                    @update:page="changePage"
-                >
-                    <PaginationContent>
-                        <PaginationFirst />
-                        <PaginationPrevious />
-
-                        <template
-                            v-for="(item, index) in paginationItems"
-                            :key="index"
-                        >
-                            <PaginationItem
-                                v-if="item.type === 'page'"
-                                :value="item.value"
-                                as-child
-                            >
-                                <Button
-                                    :variant="
-                                        item.value === pagination.current_page
-                                            ? 'default'
-                                            : 'outline'
-                                    "
-                                    size="icon"
-                                >
-                                    {{ item.value }}
-                                </Button>
-                            </PaginationItem>
-                            <PaginationEllipsis v-else :index="index" />
-                        </template>
-
-                        <PaginationNext />
-                        <PaginationLast />
-                    </PaginationContent>
-                </Pagination>
-            </div>
+            <TablePagination
+                :pagination="pagination"
+                @change-page="changePage"
+            />
         </div>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
 import FiltersBar from '@/components/table/FiltersBar.vue';
-import Button from '@/components/ui/button/Button.vue';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationFirst,
-    PaginationItem,
-    PaginationLast,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
+import TablePagination  from '@/components/table/TablePagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import TableDevelopers from '@/pages/developers/TableDevelopers.vue';
 import { dashboard } from '@/routes';
@@ -167,56 +116,17 @@ function changePage(page: number) {
     applyFilters(page);
 }
 
-// Generar items de paginación
-const paginationItems = computed(() => {
-    if (!props.pagination) return [];
-
-    const items: Array<{ type: 'page' | 'ellipsis'; value: number }> = [];
-    const current = props.pagination.current_page;
-    const last = props.pagination.last_page;
-    const siblingCount = 1;
-
-    // Siempre mostrar la primera página
-    items.push({ type: 'page', value: 1 });
-
-    // Calcular rango de páginas a mostrar
-    const leftSibling = Math.max(current - siblingCount, 2);
-    const rightSibling = Math.min(current + siblingCount, last - 1);
-
-    // Agregar ellipsis izquierda si es necesario
-    if (leftSibling > 2) {
-        items.push({ type: 'ellipsis', value: -1 });
-    }
-
-    // Agregar páginas del medio
-    for (let i = leftSibling; i <= rightSibling; i++) {
-        items.push({ type: 'page', value: i });
-    }
-
-    // Agregar ellipsis derecha si es necesario
-    if (rightSibling < last - 1) {
-        items.push({ type: 'ellipsis', value: -2 });
-    }
-
-    // Siempre mostrar la última página (si hay más de una)
-    if (last > 1) {
-        items.push({ type: 'page', value: last });
-    }
-
-    return items;
-});
-
 // Watch con debounce para search (espera 500ms después de que el usuario deje de escribir)
 watchDebounced(
     search,
     () => {
-        applyFilters(1); // Resetear a página 1 al buscar
+        applyFilters(1);
     },
     { debounce: 500 },
 );
 
 // Watch inmediato para perPage y status
 watch([perPage, status], () => {
-    applyFilters(1); // Resetear a página 1 al cambiar filtros
+    applyFilters(1);
 });
 </script>
