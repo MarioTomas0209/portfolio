@@ -71,4 +71,47 @@ class ServiceController extends Controller
             'data' => $service
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $service = Service::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'is_active' => 'required|boolean',
+            'icon' => 'required|string|max:255',
+            'color' => 'required|string|max:255',
+            'features' => 'required|array|min:1',
+            'features.*' => 'string',
+        ]);
+
+        $service->update($validatedData);
+
+        return response()->json([
+            'message' => 'Service updated successfully',
+            'data' => $service
+        ], 200);
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $service = Service::findOrFail($id);
+            $service->delete();
+
+            return response()->json([
+                'message' => 'Service deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Service not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while deleting the service',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

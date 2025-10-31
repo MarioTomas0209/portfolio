@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useServiceForm } from '@/composables/useServiceForm';
+import { useServiceForm } from '@/composables/service/useServiceForm';
 
 import Button from '@/components/ui/button/Button.vue';
 import {
@@ -11,10 +11,18 @@ import {
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
+import { Spinner } from '@/components/ui/spinner';
 import Switch from '@/components/ui/switch/Switch.vue';
 import Textarea from '@/components/ui/textarea/Textarea.vue';
+import { useColor } from '@/composables/service/useColor';
+import { Service } from '@/types';
 import { Plus, X } from 'lucide-vue-next';
-import { Spinner } from "@/components/ui/spinner"
+import { watch } from 'vue';
+
+// Emitir evento cuando se cierre
+const emit = defineEmits<{
+    close: [];
+}>();
 
 const {
     // Propities
@@ -23,26 +31,57 @@ const {
     formData,
     validationErrors,
     isSubmitting,
+    isEditMode,
 
     // Methods
     addFeature,
     removeFeature,
     onSubmit,
     resetForm,
-} = useServiceForm();
+    loadService,
+} = useServiceForm(emit);
+
+const {
+    // Propities
+    startColor,
+    endColor,
+    // Methods
+    gradientPreview,
+    presetColors,
+    applyPreset,
+} = useColor();
+
+// Recibir el servicio para editar
+const props = defineProps<{
+    service?: Service | null;
+}>();
+
+// Observar cambios en la prop service y cargar los datos
+watch(
+    () => props.service,
+    (newService) => {
+        if (newService) {
+            loadService(newService);
+        }
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
     <Dialog v-model:open="isOpen" @update:open="resetForm">
-        <DialogTrigger>
+        <DialogTrigger asChild @click="isOpen = true">
             <Button variant="orange">
                 <Plus />
             </Button>
         </DialogTrigger>
         <DialogContent class="sm:max-w-3xl">
-            <DialogTitle> Create new Service </DialogTitle>
+            <DialogTitle>
+                {{ isEditMode ? 'Edit Service' : 'Create new Service' }}
+            </DialogTitle>
             <DialogDescription>
-                Complete the details to create a new service.
+                Complete the details to {{ isEditMode ? 'edit' : 'create' }} a
+                new service.
             </DialogDescription>
 
             <form @submit.prevent="onSubmit" class="grid gap-4">
@@ -74,29 +113,31 @@ const {
                         <Label for="isActive" class="ml-2">Is Active</Label>
                     </div>
                 </div>
-                <div class="space-y-1">
-                    <Label for="description"
-                        >Description<span class="font-bold text-red-500"
-                            >*</span
-                        ></Label
-                    >
-                    <Textarea
-                        placeholder="Ex: Servicio de desarrollo web a medida"
-                        :class="{
-                            'border-red-500': validationErrors.description,
-                        }"
-                        v-model="formData.description"
-                        required
-                    />
-                    <p
-                        v-if="validationErrors.description"
-                        class="text-sm text-red-500"
-                    >
-                        {{ validationErrors.description }}
-                    </p>
-                </div>
-                <!-- Icon and Color -->
+
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <!-- Description -->
+                    <div class="space-y-1">
+                        <Label for="description"
+                            >Description<span class="font-bold text-red-500"
+                                >*</span
+                            ></Label
+                        >
+                        <Textarea
+                            placeholder="Ex: Servicio de desarrollo web a medida"
+                            :class="{
+                                'border-red-500': validationErrors.description,
+                            }"
+                            v-model="formData.description"
+                            required
+                        />
+                        <p
+                            v-if="validationErrors.description"
+                            class="text-sm text-red-500"
+                        >
+                            {{ validationErrors.description }}
+                        </p>
+                    </div>
+                    <!-- Icon -->
                     <div class="space-y-1">
                         <Label for="icon"
                             >Icon<span class="font-bold text-red-500"
@@ -115,27 +156,114 @@ const {
                             {{ validationErrors.icon }}
                         </p>
                     </div>
-                    <div class="space-y-1">
-                        <Label for="color"
-                            >Color<span class="font-bold text-red-500"
-                                >*</span
-                            ></Label
-                        >
-                        <Input
-                            type="text"
-                            placeholder="Ex: from-blue-500 to-blue-600"
-                            v-model="formData.color"
-                            :class="{ 'border-red-500': validationErrors.color }"
-                            required
-                        />
-                        <p
-                            v-if="validationErrors.color"
-                            class="text-sm text-red-500"
-                        >
-                            {{ validationErrors.color }}
-                        </p>
-                    </div>
                 </div>
+
+                <!-- Color -->
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <!-- Preview de color -->
+                        <div class="space-y-2">
+                            <div
+                                :style="{ background: gradientPreview }"
+                                class="h-16 w-full rounded-lg border-2 border-gray-200 shadow-sm"
+                            ></div>
+                            <p
+                                class="font-mono text-xs break-all text-gray-500"
+                            >
+                                {{ gradientPreview }}
+                            </p>
+                        </div>
+
+                        <!-- Selectores de color -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <Label for="startColor" class="text-sm"
+                                    >Start Color</Label
+                                >
+                                <div class="flex gap-2">
+                                    <Input
+                                        id="startColor"
+                                        type="color"
+                                        v-model="startColor"
+                                        class="h-10 w-16 cursor-pointer"
+                                    />
+                                    <Input
+                                        type="text"
+                                        v-model="startColor"
+                                        placeholder="#3b82f6"
+                                        class="flex-1 font-mono text-sm"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="endColor" class="text-sm"
+                                    >End Color</Label
+                                >
+                                <div class="flex gap-2">
+                                    <Input
+                                        id="endColor"
+                                        type="color"
+                                        v-model="endColor"
+                                        class="h-10 w-16 cursor-pointer"
+                                    />
+                                    <Input
+                                        type="text"
+                                        v-model="endColor"
+                                        placeholder="#2563eb"
+                                        class="flex-1 font-mono text-sm"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="grid grid-cols-1 items-center gap-4 sm:grid-cols-2"
+                    >
+                        <!-- Colores predefinidos -->
+                        <div class="space-y-2">
+                            <Label class="text-sm">Quick Presets</Label>
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    v-for="preset in presetColors"
+                                    :key="preset.name"
+                                    type="button"
+                                    @click="applyPreset(preset)"
+                                    :title="preset.name"
+                                    :style="{
+                                        background: `linear-gradient(to right, ${preset.start}, ${preset.end})`,
+                                    }"
+                                    class="h-8 w-8 rounded-md border-2 border-gray-200 shadow-sm transition-all duration-200 hover:scale-110 hover:border-gray-400"
+                                ></button>
+                            </div>
+                        </div>
+                        <div>
+                            <Label for="color"
+                                >Color<span class="font-bold text-red-500"
+                                    >*</span
+                                ></Label
+                            >
+                            <Input
+                                type="text"
+                                placeholder="Ex: linear-gradient(to right, #ec4899, #db2777)"
+                                v-model="formData.color"
+                                :class="{
+                                    'border-red-500': validationErrors.color,
+                                }"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <p
+                        v-if="validationErrors.color"
+                        class="text-sm text-red-500"
+                    >
+                        {{ validationErrors.color }}
+                    </p>
+                </div>
+
+                <!-- Features -->
                 <div class="space-y-1">
                     <Label for="features"
                         >Features<span class="font-bold text-red-500"
@@ -149,7 +277,9 @@ const {
                             v-model="newFeature"
                             placeholder="Ex: Diseño responsive"
                             @keypress.enter.prevent="addFeature"
-                            :class="{ 'border-red-500': validationErrors.features }"
+                            :class="{
+                                'border-red-500': validationErrors.features,
+                            }"
                         />
                         <Button
                             type="button"
@@ -161,7 +291,10 @@ const {
                         </Button>
                     </div>
 
-                    <p v-if="validationErrors.features" class="text-sm text-red-500">
+                    <p
+                        v-if="validationErrors.features"
+                        class="text-sm text-red-500"
+                    >
                         {{ validationErrors.features }}
                     </p>
 
@@ -170,7 +303,7 @@ const {
                         <div
                             v-for="(feature, item) in formData.features"
                             :key="item"
-                            class="flex items-center justify-between rounded border bg-gray-50 dark:bg-gray-900 p-2"
+                            class="flex items-center justify-between rounded border bg-gray-50 p-2 dark:bg-gray-900"
                         >
                             <span>{{ feature }}</span>
                             <Button
@@ -188,12 +321,12 @@ const {
                 </div>
 
                 <div class="mt-5 flex justify-end">
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         variant="orange"
                         :disabled="isSubmitting"
                     >
-                        {{  isSubmitting ? 'Saving...' : 'Save'  }}
+                        {{ isSubmitting ? 'Saving...' : 'Save' }}
                         <Spinner v-if="isSubmitting" />
                     </Button>
                 </div>

@@ -13,7 +13,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { getInitials } from '@/composables/useInitials';
-import { useDeleteDeveloper } from '@/composables/useDeleteDeveloper';
+import { useDeleteDeveloper } from '@/composables/developer/useDeleteDeveloper';
 import { Developer } from '@/types';
 import {
     BriefcaseBusiness,
@@ -28,6 +28,7 @@ import {
     Trash2,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
+import Spinner from '@/components/ui/spinner/Spinner.vue';
 
 // Recibir los datos de los desarrolladores enviados desde el componente padre
 const props = defineProps<{
@@ -276,18 +277,19 @@ const getContactInfo = (developer: Developer): ContactInfo[] => {
             
             <div class="mt-6 flex justify-end gap-3">
                 <Button
-                    variant="outline"
+                    variant="red"
                     @click="cancelDelete"
                     :disabled="isDeleting"
                 >
                     Cancel
                 </Button>
                 <Button
-                    variant="destructive"
+                    variant="orange"
                     @click="executeDelete"
                     :disabled="isDeleting"
                 >
                     {{ isDeleting ? 'Deleting...' : 'Delete' }}
+                    <Spinner v-if="isDeleting" />
                 </Button>
             </div>
         </DialogContent>

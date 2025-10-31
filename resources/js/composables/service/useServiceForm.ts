@@ -1,12 +1,38 @@
 import type { Service } from '@/types';
-import { reactive, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { computed, reactive, ref } from 'vue';
 import { toast } from 'vue-sonner';
-import { router } from '@inertiajs/vue3'; 
 
 export function useServiceForm(emit?: any) {
     type CreateService = Omit<Service, 'id' | 'created_at' | 'updated_at'>;
 
     const isSubmitting = ref(false);
+
+    // Estado para el servicio que se esta editando
+    const currentService = ref<Service | null>(null);
+
+    // Veerificar si se esta editando un servicio
+    const isEditMode = computed(() => !!currentService.value);
+
+    // Funcion para cargar un servicio en el formulario
+    function loadService(service: Service | null) {
+        if (service) {
+            currentService.value = service;
+            Object.assign(formData, {
+                title: service.title || '',
+                description: service.description || '',
+                icon: service.icon || '',
+                color: service.color || '',
+                features: service.features || [],
+                is_active: service.is_active ?? true,
+            });
+
+            isOpen.value = true;
+        } else {
+            currentService.value = null;
+            Object.assign(formData, initialFormState);
+        }
+    }
 
     // Estado para controlar la visibilidad del formulario
     const isOpen = ref(false);
@@ -116,14 +142,20 @@ export function useServiceForm(emit?: any) {
         try {
             isSubmitting.value = true;
 
-            const endpoint = '/api/service';
+            // Endpoint y metodo segun si es crear o editar.
+            const endpoint = isEditMode.value
+                ? `/api/service/${currentService.value?.id}`
+                : '/api/service';
+
+            const method = isEditMode.value ? 'PUT' : 'POST';
+
             const csrf =
                 document
                     .querySelector('meta[name="csrf-token"]')
                     ?.getAttribute('content') || '';
 
             const res = await fetch(endpoint, {
-                method: 'POST',
+                method: method,
                 headers: {
                     'X-CSRF-TOKEN': csrf,
                     'Content-Type': 'application/json',
@@ -163,7 +195,10 @@ export function useServiceForm(emit?: any) {
             // 1. Cerramos el modal
             isOpen.value = false;
             // 2. Mostrar mensaje de exito
-            toast.success('Service created successfully!');
+            const message = isEditMode.value
+                ? 'Service updated successfully!'
+                : 'Service created successfully!';
+            toast.success(message);
             // 3. Resetear
             resetForm();
 
@@ -240,11 +275,13 @@ export function useServiceForm(emit?: any) {
         formData,
         validationErrors,
         isSubmitting,
+        isEditMode,
 
         // Methods
         addFeature,
         removeFeature,
         onSubmit,
         resetForm,
+        loadService,
     };
 }

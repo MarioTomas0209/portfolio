@@ -8,13 +8,34 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { useDeleteService } from '@/composables/service/useDeleteService';
 import { Service } from '@/types';
 import { Edit, Trash2 } from 'lucide-vue-next';
+import { Spinner } from '@/components/ui/spinner';
 
 // Recibir los datos de los servicios enviados desde el compoenente padre
 const props = defineProps<{
     services: Array<Service>;
 }>();
+
+// Emit para comunicarsr con el componente padre
+const emit = defineEmits<{
+    edit: [service: Service];
+}>();
+
+// Composable para eliminar
+const {
+    // Propities
+    isDeleting,
+    showDeleteDialog,
+    serviceToDelete,
+    // Methods
+    confirmDelete,
+    cancelDelete,
+    executeDelete,
+} = useDeleteService();
+
 </script>
 
 <template>
@@ -71,9 +92,11 @@ const props = defineProps<{
                 <TableCell>
                     <i :class="`${service.icon} text-xl`"></i>
                 </TableCell>
+                <!-- Color -->
                 <TableCell>
                     <span
-                        :class="`block h-6 w-6 rounded-full bg-gradient-to-r ${service.color}`"
+                        :style="{ background: service.color }"
+                        class="block h-6 w-6 rounded-full"
                     ></span>
                 </TableCell>
                 <TableCell class="text-center">
@@ -83,6 +106,7 @@ const props = defineProps<{
                             size="sm"
                             title="Edit"
                             aria-label="Edit Service"
+                            @click="emit('edit', service)"
                         >
                             <Edit />
                         </Button>
@@ -91,6 +115,7 @@ const props = defineProps<{
                             size="sm"
                             title="Delete"
                             aria-label="Delete Service"
+                            @click="confirmDelete(service)"
                         >
                             <Trash2 />
                         </Button>
@@ -99,4 +124,33 @@ const props = defineProps<{
             </TableRow>
         </TableBody>
     </Table>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog :open="showDeleteDialog" @update:open="showDeleteDialog = $event">
+        <DialogContent>
+            <DialogTitle>Delete Service</DialogTitle>
+            <DialogDescription>
+                Are you sure want to delete <strong>{{ serviceToDelete?.title }}</strong>?
+                This action cannot be undone.
+            </DialogDescription>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <Button
+                    variant="red"
+                    @click="cancelDelete"
+                    :disabled="isDeleting"
+                >
+                    Cancel
+                </Button>
+                <Button
+                    variant="orange"
+                    @click="executeDelete"
+                    :disable="isDeleting"
+                >
+                    {{ isDeleting ? 'Delting' : 'Delete' }}
+                    <Spinner v-if="isDeleting" />
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 </template>

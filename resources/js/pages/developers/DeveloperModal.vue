@@ -14,7 +14,8 @@
                 {{ isEditMode ? 'Edit Developer' : 'Create New Developer' }}
             </DialogTitle>
             <DialogDescription>
-                Fill in the details to create a new developer profile.
+                Fill in the details to {{ isEditMode ? 'edit' : 'create' }} a
+                new developer profile.
             </DialogDescription>
 
             <form @submit.prevent="onSubmit" class="grid gap-4">
@@ -214,12 +215,15 @@
                 <!-- cv Inputs -->
                 <div class="">
                     <Label for="cv" class="label">CV</Label>
-                    
+
                     <!-- Mostrar CV actual si existe -->
-                    <div v-if="currentCvUrl && !selectedFileName" class="mb-2 flex items-center gap-2 rounded-md bg-gray-100 p-3 dark:bg-gray-800">
+                    <div
+                        v-if="currentCvUrl && !selectedFileName"
+                        class="mb-2 flex items-center gap-2 rounded-md bg-gray-100 p-3 dark:bg-gray-800"
+                    >
                         <FileText class="h-5 w-5 text-green-500" />
-                        <a 
-                            :href="currentCvUrl" 
+                        <a
+                            :href="currentCvUrl"
                             target="_blank"
                             class="flex-1 text-sm text-blue-600 hover:underline"
                         >
@@ -248,7 +252,10 @@
                     >
                         Nuevo archivo seleccionado: {{ selectedFileName }}
                     </p>
-                    <p v-else-if="!currentCvUrl" class="mt-1 text-xs text-gray-500">
+                    <p
+                        v-else-if="!currentCvUrl"
+                        class="mt-1 text-xs text-gray-500"
+                    >
                         PDF file, max 2MB
                     </p>
                 </div>
@@ -270,9 +277,6 @@
 
 <script setup lang="ts">
 import Button from '@/components/ui/button/Button.vue';
-import Input from '@/components/ui/input/Input.vue';
-import Label from '@/components/ui/label/Label.vue';
-import Switch from '@/components/ui/switch/Switch.vue';
 import {
     Dialog,
     DialogContent,
@@ -280,11 +284,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { useDeveloperForm } from '@/composables/useDeveloperForm';
-import { Plus, FileText, Trash2 } from 'lucide-vue-next';
+import Input from '@/components/ui/input/Input.vue';
+import Label from '@/components/ui/label/Label.vue';
+import { Spinner } from '@/components/ui/spinner';
+import Switch from '@/components/ui/switch/Switch.vue';
+import { useDeveloperForm } from '@/composables/developer/useDeveloperForm';
 import type { Developer } from '@/types';
+import { FileText, Plus, Trash2 } from 'lucide-vue-next';
 import { watch } from 'vue';
-import { Spinner } from "@/components/ui/spinner";
 
 // Recibir el developer para editar
 const props = defineProps<{
@@ -293,7 +300,7 @@ const props = defineProps<{
 
 // Emitir evento cuando se cierre
 const emit = defineEmits<{
-    close: []
+    close: [];
 }>();
 
 const {
@@ -312,10 +319,13 @@ const {
 } = useDeveloperForm(emit);
 
 // Observar cambios en la prop developer y cargar los datos
-watch(() => props.developer, (newDeveloper) => {
-    if (newDeveloper) {
-        loadDeveloper(newDeveloper);
-    }
-}, { immediate: true });
-
+watch(
+    () => props.developer,
+    (newDeveloper) => {
+        if (newDeveloper) {
+            loadDeveloper(newDeveloper);
+        }
+    },
+    { immediate: true },
+);
 </script>

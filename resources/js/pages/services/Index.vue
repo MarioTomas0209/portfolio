@@ -65,6 +65,14 @@ function applyFilters(page: number = 1) {
     );
 }
 
+// Estado para el servicio seleccionado
+const selectedService = ref<Service | null>(null);
+
+// Manejar edicion
+function handleEdit(service: Service) {
+    selectedService.value = service;
+}
+
 // Funcion para cambiar de pagina
 const changePage = (page: number) => {
     applyFilters(page);
@@ -81,9 +89,8 @@ watchDebounced(
 
 // Watch inmediato para perPage y status
 watch([perPage, status], () => {
-    applyFilters(1)
+    applyFilters(1);
 });
-
 </script>
 
 <template>
@@ -99,12 +106,18 @@ watch([perPage, status], () => {
                 name="Services"
             >
                 <template #actions>
-                    <ServiceModal />
+                    <ServiceModal
+                        :service="selectedService"
+                        @close="selectedService = null"
+                    />
                 </template>
             </FiltersBar>
 
             <!-- Tabla -->
-            <TableServices :services="props.services" />
+            <TableServices 
+                :services="props.services" 
+                @edit="handleEdit"
+            />
 
             <!-- Pagination -->
             <TablePagination

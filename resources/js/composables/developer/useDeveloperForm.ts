@@ -209,7 +209,6 @@ export function useDeveloperForm(emit?: any) {
                 ? `/api/developer/${currentDeveloper.value?.id}`
                 : '/api/developer';
 
-            // Laravel necesita _method para PUT con FormData
             if (isEditMode.value) {
                 formDataToSend.append('_method', 'PUT');
             }
