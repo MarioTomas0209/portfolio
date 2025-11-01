@@ -4,6 +4,7 @@ import Header from '@/components/landing-page/Header.vue';
 import Introduction from '@/components/landing-page/Introduction.vue';
 import { Developer, Service } from '@/types';
 import Services from '@/components/landing-page/Services.vue';
+import Form from '@/components/landing-page/Form.vue';
 
 const props = defineProps<{
     developers: Developer[];
@@ -26,6 +27,8 @@ const props = defineProps<{
         <Introduction :developers="props.developers" />
 
         <Services :services="props.services" />
+
+        <Form />
 
     </div>
 </template>
