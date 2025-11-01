@@ -25,9 +25,21 @@
                     <span>Disponibles para nuevos proyectos</span>
                 </div>
             </div>
+
+            <!-- Carrusel de desarrolladores -->
+             <div class="animate-fade-in-delayed">
+                <ProfileCarousel :developers="props.developers" />
+             </div>
         </main>
     </div>
 </template>
 
 <script setup lang="ts">
+import ProfileCarousel from '../ui/profileCarousel.vue';
+import { Developer } from '@/types';
+
+const props = defineProps<{
+    developers: Developer[];
+}>();
+
 </script>

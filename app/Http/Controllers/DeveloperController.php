@@ -94,19 +94,11 @@ class DeveloperController extends Controller
                     $validatedData['cv'] = $cvPath;
                 }
 
-                // Create developer
-                return Developer::create($validatedData);
-            });
+            // Create developer
+            return Developer::create($validatedData);
+        });
 
-            // Optionally convert storage paths to URLs for the response
-            if ($developer->image) {
-                $developer->image = Storage::url($developer->image);
-            }
-            if ($developer->cv) {
-                $developer->cv = Storage::url($developer->cv);
-            }
-
-            return response()->json([
+        return response()->json([
                 'message' => 'Developer created successfully',
                 'developer' => $developer,
             ], 201);
@@ -151,12 +143,9 @@ class DeveloperController extends Controller
                 // Manejar eliminación de CV si se solicitó
                 if ($request->input('remove_cv') === '1') {
                     // Eliminar CV del storage
-                    if ($developer->cv) {
-                        // Extraer la ruta del storage desde la URL
-                        $cvPath = str_replace('/storage/', '', parse_url($developer->cv, PHP_URL_PATH));
-                        if (Storage::disk('public')->exists($cvPath)) {
-                            Storage::disk('public')->delete($cvPath);
-                        }
+                    $cvPath = $developer->getAttributes()['cv'] ?? null;
+                    if ($cvPath && Storage::disk('public')->exists($cvPath)) {
+                        Storage::disk('public')->delete($cvPath);
                     }
                     $validatedData['cv'] = null;
                 }
@@ -164,15 +153,13 @@ class DeveloperController extends Controller
                 // Handle uploaded CV - reemplazar si hay un nuevo archivo
                 if ($request->hasFile('cv')) {
                     // Eliminar CV anterior si existe
-                    if ($developer->cv) {
-                        $cvPath = str_replace('/storage/', '', parse_url($developer->cv, PHP_URL_PATH));
-                        if (Storage::disk('public')->exists($cvPath)) {
-                            Storage::disk('public')->delete($cvPath);
-                        }
+                    $cvPath = $developer->getAttributes()['cv'] ?? null;
+                    if ($cvPath && Storage::disk('public')->exists($cvPath)) {
+                        Storage::disk('public')->delete($cvPath);
                     }
 
                     $cvPath = $request->file('cv')->store('developers/cvs', 'public');
-                    $validatedData['cv'] = Storage::url($cvPath);
+                    $validatedData['cv'] = $cvPath;
                 }
 
                 // Update developer
@@ -205,8 +192,9 @@ class DeveloperController extends Controller
 
             DB::transaction(function () use ($developer) {
                 // Eliminar archivos asociados
-                if ($developer->cv && Storage::disk('public')->exists($developer->cv)) {
-                    Storage::disk('public')->delete($developer->cv);
+                $cvPath = $developer->getAttributes()['cv'] ?? null;
+                if ($cvPath && Storage::disk('public')->exists($cvPath)) {
+                    Storage::disk('public')->delete($cvPath);
                 }
 
                 // Eliminar developer

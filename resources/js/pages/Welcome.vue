@@ -2,6 +2,12 @@
 import { Head } from '@inertiajs/vue3';
 import Header from '@/components/landing-page/Header.vue';
 import Introduction from '@/components/landing-page/Introduction.vue';
+import { Developer } from '@/types';
+
+const props = defineProps<{
+    developers: Developer[];
+}>();
+
 </script>
 
 <template>
@@ -15,6 +21,9 @@ import Introduction from '@/components/landing-page/Introduction.vue';
 
         <Header />
 
-        <Introduction />
+        <Introduction
+            :developers="props.developers"
+        />
+
     </div>
 </template>
