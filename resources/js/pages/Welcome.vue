@@ -2,10 +2,12 @@
 import { Head } from '@inertiajs/vue3';
 import Header from '@/components/landing-page/Header.vue';
 import Introduction from '@/components/landing-page/Introduction.vue';
-import { Developer } from '@/types';
+import { Developer, Service } from '@/types';
+import Services from '@/components/landing-page/Services.vue';
 
 const props = defineProps<{
     developers: Developer[];
+    services: Service[];
 }>();
 
 </script>
@@ -21,9 +23,9 @@ const props = defineProps<{
 
         <Header />
 
-        <Introduction
-            :developers="props.developers"
-        />
+        <Introduction :developers="props.developers" />
+
+        <Services :services="props.services" />
 
     </div>
 </template>
